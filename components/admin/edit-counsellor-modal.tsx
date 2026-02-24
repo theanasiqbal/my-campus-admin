@@ -41,7 +41,7 @@ export function EditCounsellorModal({ counsellor, open, onOpenChange, onSave }: 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!counsellor) return
-
+        console.log(counsellor.id, formData)
         setLoading(true)
         try {
             await onSave(counsellor.id, formData)
