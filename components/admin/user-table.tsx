@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mail, Phone, Clock } from "lucide-react"
+import { Mail, Phone, Clock, MoreHorizontal, Edit, Trash } from "lucide-react"
 import {
   Pagination,
   PaginationContent,
@@ -10,6 +10,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 export type StudentUser = {
   id: string
@@ -21,9 +28,11 @@ export type StudentUser = {
 
 interface UserTableProps {
   users: StudentUser[]
+  onEdit: (user: StudentUser) => void
+  onDelete: (user: StudentUser) => void
 }
 
-export function UserTable({ users }: UserTableProps) {
+export function UserTable({ users, onEdit, onDelete }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
 
@@ -56,6 +65,7 @@ export function UserTable({ users }: UserTableProps) {
                   <TableHead className="font-semibold text-slate-700">Contact Info</TableHead>
                   <TableHead className="font-semibold text-slate-700">Status</TableHead>
                   <TableHead className="font-semibold text-slate-700">Joined</TableHead>
+                  <TableHead className="font-semibold text-slate-700 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -108,6 +118,26 @@ export function UserTable({ users }: UserTableProps) {
                           day: 'numeric'
                         })}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(user)}>
+                            <Edit className="mr-2 h-4 w-4 text-slate-500" />
+                            <span>Edit details</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onDelete(user)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+                            <Trash className="mr-2 h-4 w-4" />
+                            <span>Delete user</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

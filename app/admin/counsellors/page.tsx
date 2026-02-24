@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { CounsellorTable } from "@/components/admin/counsellor-table";
 import { AddCounsellorModal } from "@/components/admin/add-counsellor-modal";
+import { EditCounsellorModal } from "@/components/admin/edit-counsellor-modal";
 import { Suspense } from "react";
 
 export default function CounsellorsPage() {
@@ -21,7 +22,11 @@ export default function CounsellorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("latest");
+
+  // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [counsellorToEdit, setCounsellorToEdit] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchCounsellors = async () => {
@@ -72,9 +77,9 @@ export default function CounsellorsPage() {
       prev.map((counsellor) =>
         counsellor.id === id
           ? {
-              ...counsellor,
-              status: counsellor.status === "active" ? "inactive" : "active",
-            }
+            ...counsellor,
+            status: counsellor.status === "active" ? "inactive" : "active",
+          }
           : counsellor
       )
     );
@@ -101,6 +106,47 @@ export default function CounsellorsPage() {
       },
       ...prev,
     ]);
+  };
+
+  const handleEdit = (counsellor: any) => {
+    setCounsellorToEdit(counsellor);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (id: string, data: any) => {
+    const res = await fetch(`/api/counsellors/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("Failed to update counsellor:", errorData.error);
+      alert(errorData.error);
+      return;
+    }
+
+    setCounsellors((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...data } : c))
+    );
+  };
+
+  const handleDelete = async (counsellor: any) => {
+    if (!confirm(`Are you sure you want to delete ${counsellor.name}?`)) return;
+
+    const res = await fetch(`/api/counsellors/${counsellor.id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("Failed to delete counsellor:", errorData.error);
+      alert(errorData.error);
+      return;
+    }
+
+    setCounsellors((prev) => prev.filter((c) => c.id !== counsellor.id));
   };
 
   return (
@@ -164,6 +210,8 @@ export default function CounsellorsPage() {
           <CounsellorTable
             counsellors={filteredCounsellors}
             onToggleStatus={toggleStatus}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         )}
 
@@ -172,6 +220,14 @@ export default function CounsellorsPage() {
           open={isAddModalOpen}
           onOpenChange={setIsAddModalOpen}
           onAdd={handleAddCounsellor}
+        />
+
+        {/* Edit Modal */}
+        <EditCounsellorModal
+          counsellor={counsellorToEdit}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onSave={handleSaveEdit}
         />
       </div>
     </Suspense>

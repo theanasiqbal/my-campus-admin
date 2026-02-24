@@ -11,8 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, Award } from "lucide-react";
+import { DollarSign, Award, MoreHorizontal, Edit, Trash, Lock, Unlock } from "lucide-react";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type Counsellor = {
   id: string;
@@ -28,11 +34,15 @@ type Counsellor = {
 interface CounsellorTableProps {
   counsellors: Counsellor[];
   onToggleStatus: (id: string) => void;
+  onEdit: (counsellor: Counsellor) => void;
+  onDelete: (counsellor: Counsellor) => void;
 }
 
 export function CounsellorTable({
   counsellors,
   onToggleStatus,
+  onEdit,
+  onDelete,
 }: CounsellorTableProps) {
   if (counsellors.length === 0) {
     return (
@@ -120,16 +130,37 @@ export function CounsellorTable({
                     {new Date(counsellor.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onToggleStatus(counsellor.id)}
-                      className="whitespace-nowrap"
-                    >
-                      {counsellor.status === "active"
-                        ? "Deactivate"
-                        : "Activate"}
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onToggleStatus(counsellor.id)}>
+                          {counsellor.status === "active" ? (
+                            <>
+                              <Lock className="mr-2 h-4 w-4 text-slate-500" />
+                              <span>Deactivate</span>
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="mr-2 h-4 w-4 text-slate-500" />
+                              <span>Activate</span>
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(counsellor)}>
+                          <Edit className="mr-2 h-4 w-4 text-slate-500" />
+                          <span>Edit details</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDelete(counsellor)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+                          <Trash className="mr-2 h-4 w-4" />
+                          <span>Delete counsellor</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

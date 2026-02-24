@@ -6,13 +6,45 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UserTable, StudentUser } from "@/components/admin/user-table"
 import { Button } from "@/components/ui/button"
+import { EditUserModal } from "./edit-user-modal"
+import { updateStudent, deleteStudent } from "@/app/admin/users/actions"
 
 export function UsersClient({ initialUsers }: { initialUsers: StudentUser[] }) {
+    const [users, setUsers] = useState<StudentUser[]>(initialUsers)
     const [searchQuery, setSearchQuery] = useState("")
     const [sortOrder, setSortOrder] = useState<string>("latest")
 
+    // Modal states
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [userToEdit, setUserToEdit] = useState<StudentUser | null>(null)
+
+    const handleEdit = (user: StudentUser) => {
+        setUserToEdit(user)
+        setIsEditModalOpen(true)
+    }
+
+    const handleSaveEdit = async (id: string, data: { name: string; email: string; phone: string }) => {
+        const result = await updateStudent(id, data)
+        if (result.success) {
+            setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data, phone: data.phone || null } : u)))
+        } else {
+            alert(result.error)
+        }
+    }
+
+    const handleDelete = async (user: StudentUser) => {
+        if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+            const result = await deleteStudent(user.id)
+            if (result.success) {
+                setUsers((prev) => prev.filter((u) => u.id !== user.id))
+            } else {
+                alert(result.error)
+            }
+        }
+    }
+
     // Filter and sort users
-    const filteredUsers = initialUsers
+    const filteredUsers = users
         .filter((user) => {
             const matchesSearch =
                 user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,7 +103,18 @@ export function UsersClient({ initialUsers }: { initialUsers: StudentUser[] }) {
             </div>
 
             {/* Table */}
-            <UserTable users={filteredUsers} />
+            <UserTable
+                users={filteredUsers}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
+
+            <EditUserModal
+                user={userToEdit}
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                onSave={handleSaveEdit}
+            />
         </div>
     )
 }
